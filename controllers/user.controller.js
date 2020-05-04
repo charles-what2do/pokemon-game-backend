@@ -89,6 +89,19 @@ const respondLoggedOut = (req, res) => {
   res.send("You have been logged out");
 };
 
+const findTokenUser = wrapAsync(async (req, res, next) => {
+  const user = await User.findOne({ id: req.user.userid });
+  if (!user) {
+    const noUserError = new Error("No such user");
+    noUserError.statusCode = 404;
+    throw noUserError;
+  }
+
+  const userObject = user.toObject();
+  const { _id, __v, password, ...strippedUser } = userObject;
+  res.json(strippedUser);
+});
+
 module.exports = {
   createOne,
   respondLoggedIn,
@@ -96,4 +109,5 @@ module.exports = {
   setCookie,
   clearCookie,
   respondLoggedOut,
+  findTokenUser,
 };

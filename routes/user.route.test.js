@@ -5,6 +5,9 @@ const { teardownMongoose } = require("../utils/testTeardownMongoose");
 const userData = require("../data/testUserData");
 const User = require("../models/user.model");
 
+const jwt = require("jsonwebtoken");
+jest.mock("jsonwebtoken");
+
 describe("User Route", () => {
   afterAll(async () => {
     await teardownMongoose();
@@ -15,6 +18,7 @@ describe("User Route", () => {
   });
 
   afterEach(async () => {
+    jest.resetAllMocks();
     await User.deleteMany();
   });
 
@@ -62,7 +66,7 @@ describe("User Route", () => {
     });
   });
 
-  describe("/login", () => {
+  describe("/user/login", () => {
     it("POST /user/login should login user if username and password is correct", async () => {
       const loginUser = {
         username: userData[1].username,
@@ -93,11 +97,47 @@ describe("User Route", () => {
     });
   });
 
-  describe("/logout", () => {
+  describe("/user/logout", () => {
     it("POST /user/logout should logout and clear cookie", async () => {
       const response = await request(app).post("/user/logout").expect(200);
       expect(response.text).toBe("You have been logged out");
       expect(response.headers["set-cookie"][0]).toMatch(/^token=/);
+    });
+  });
+
+  describe("/user", () => {
+    let signedInAgent;
+
+    beforeEach(async () => {
+      signedInAgent = request.agent(app);
+      await signedInAgent.post("/user/login").send(userData[0]);
+    });
+
+    it("GET /user should return user information using user id from token", async () => {
+      const userIndex = 1;
+      const { password, ...expectedUserInformation } = userData[userIndex];
+
+      jwt.verify.mockReturnValueOnce({
+        userid: userData[userIndex].id,
+        username: userData[userIndex].username,
+      });
+
+      const { body: actualUser } = await signedInAgent
+        .get("/user/")
+        .expect(200);
+
+      expect(jwt.verify).toBeCalledTimes(1);
+      expect(actualUser).toMatchObject(expectedUserInformation);
+    });
+
+    it("GET /user should return 401 unathorized when token is invalid", async () => {
+      jwt.verify.mockImplementationOnce(() => {
+        throw new Error("token not valid");
+      });
+
+      const { body: error } = await signedInAgent.get("/user").expect(401);
+      expect(jwt.verify).toBeCalledTimes(1);
+      expect(error.error).toBe("You are not authorized");
     });
   });
 });
