@@ -1,7 +1,11 @@
 const express = require("express");
 const app = express();
+require("./utils/db");
 
 app.use(express.json());
+
+const userRouter = require("./routes/user.route");
+app.use("/user", userRouter);
 
 app.get("/", (req, res) => {
   res.json({
@@ -13,7 +17,7 @@ app.get("/", (req, res) => {
   });
 });
 
-app.use((err, req, res) => {
+app.use((err, req, res, next) => {
   res.status(err.statusCode || 500);
   const message = err.message || "Internal server error";
   if (app.get("env") === "development" || app.get("env") === "test") {
