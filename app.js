@@ -1,8 +1,10 @@
 const express = require("express");
+const cookierParser = require("cookie-parser");
 const app = express();
 require("./utils/db");
 
 app.use(express.json());
+app.use(cookierParser(process.env.COOKIE_SECRET_KEY));
 
 const userRouter = require("./routes/user.route");
 app.use("/user", userRouter);

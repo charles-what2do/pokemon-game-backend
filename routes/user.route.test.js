@@ -61,4 +61,35 @@ describe("User Route", () => {
       expect(error.error).toBe("Invalid inputs");
     });
   });
+
+  describe("/login", () => {
+    it("POST /user/login should login user if username and password is correct", async () => {
+      const loginUser = {
+        username: userData[1].username,
+        password: userData[1].password,
+      };
+
+      const { text: message } = await request(app)
+        .post("/user/login")
+        .send(loginUser)
+        .expect("set-cookie", /token=.*; Path=\/; Expires=.* HttpOnly/)
+        .expect(200);
+
+      expect(message).toEqual("You are logged in");
+    });
+
+    it("POST /user/login should not log trainer in when password is incorrect", async () => {
+      const wrongUser = {
+        username: userData[1].username,
+        password: "random123",
+      };
+
+      const { body: error } = await request(app)
+        .post("/user/login")
+        .send(wrongUser)
+        .expect(400);
+
+      expect(error.error).toBe("Wrong password");
+    });
+  });
 });
