@@ -80,9 +80,20 @@ const setCookie = (req, res, next) => {
   next();
 };
 
+const clearCookie = (req, res, next) => {
+  res.clearCookie("token");
+  next();
+};
+
+const respondLoggedOut = (req, res) => {
+  res.send("You have been logged out");
+};
+
 module.exports = {
   createOne,
   respondLoggedIn,
   setToken,
   setCookie,
+  clearCookie,
+  respondLoggedOut,
 };

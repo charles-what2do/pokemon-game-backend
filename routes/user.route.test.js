@@ -92,4 +92,12 @@ describe("User Route", () => {
       expect(error.error).toBe("Wrong password");
     });
   });
+
+  describe("/logout", () => {
+    it("POST /user/logout should logout and clear cookie", async () => {
+      const response = await request(app).post("/user/logout").expect(200);
+      expect(response.text).toBe("You have been logged out");
+      expect(response.headers["set-cookie"][0]).toMatch(/^token=/);
+    });
+  });
 });
