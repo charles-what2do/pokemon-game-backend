@@ -9,12 +9,16 @@ const jwt = require("jsonwebtoken");
 jest.mock("jsonwebtoken");
 
 describe("User Route", () => {
+  let signedInAgent;
+
   afterAll(async () => {
     await teardownMongoose();
   });
 
   beforeEach(async () => {
     await User.create(userData);
+    signedInAgent = request.agent(app);
+    await signedInAgent.post("/user/login").send(userData[0]);
   });
 
   afterEach(async () => {
@@ -82,7 +86,7 @@ describe("User Route", () => {
       expect(message).toEqual("You are logged in");
     });
 
-    it("POST /user/login should not log trainer in when password is incorrect", async () => {
+    it("POST /user/login should not log user in when password is incorrect", async () => {
       const wrongUser = {
         username: userData[1].username,
         password: "random123",
@@ -106,16 +110,11 @@ describe("User Route", () => {
   });
 
   describe("/user", () => {
-    let signedInAgent;
-
-    beforeEach(async () => {
-      signedInAgent = request.agent(app);
-      await signedInAgent.post("/user/login").send(userData[0]);
-    });
-
     it("GET /user should return user information using user id from token", async () => {
       const userIndex = 1;
-      const { password, ...expectedUserInformation } = userData[userIndex];
+      const { password, records, ...expectedUserInformation } = userData[
+        userIndex
+      ];
 
       jwt.verify.mockReturnValueOnce({
         userid: userData[userIndex].id,
@@ -136,6 +135,69 @@ describe("User Route", () => {
       });
 
       const { body: error } = await signedInAgent.get("/user").expect(401);
+      expect(jwt.verify).toBeCalledTimes(1);
+      expect(error.error).toBe("You are not authorized");
+    });
+  });
+
+  describe("/user/records", () => {
+    it("GET /user/records should return user records using user id from token", async () => {
+      const userIndex = 1;
+      const { records, ...otherUserInformation } = userData[userIndex];
+
+      jwt.verify.mockReturnValueOnce({
+        userid: userData[userIndex].id,
+        username: userData[userIndex].username,
+      });
+
+      const { body: actualRecords } = await signedInAgent
+        .get("/user/records")
+        .expect(200);
+
+      expect(jwt.verify).toBeCalledTimes(1);
+      expect(actualRecords).toMatchObject(records);
+    });
+
+    it("GET /user/records should return 401 unathorized when token is invalid", async () => {
+      jwt.verify.mockImplementationOnce(() => {
+        throw new Error("token not valid");
+      });
+
+      const { body: error } = await signedInAgent
+        .get("/user/records")
+        .expect(401);
+      expect(jwt.verify).toBeCalledTimes(1);
+      expect(error.error).toBe("You are not authorized");
+    });
+
+    it("POST /user/records should add a record using user id from token and return updated record", async () => {
+      const record = {
+        recordType: "WIN",
+        recordTime: 400,
+      };
+
+      jwt.verify.mockReturnValueOnce({
+        userid: userData[0].id,
+        username: userData[0].username,
+      });
+
+      const { body: updatedRecord } = await signedInAgent
+        .post("/user/records")
+        .send(record)
+        .expect(201);
+
+      expect(jwt.verify).toBeCalledTimes(1);
+      expect(updatedRecord).toMatchObject(record);
+    });
+
+    it("POST /user/records should return 401 unathorized when token is invalid", async () => {
+      jwt.verify.mockImplementationOnce(() => {
+        throw new Error("token not valid");
+      });
+
+      const { body: error } = await signedInAgent
+        .post("/user/records")
+        .expect(401);
       expect(jwt.verify).toBeCalledTimes(1);
       expect(error.error).toBe("You are not authorized");
     });

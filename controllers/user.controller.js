@@ -16,6 +16,7 @@ const createOne = wrapAsync(async (req, res, next) => {
   const result = userSchema.validate(submittedUser);
 
   if (result.error) {
+    console.log(result.error);
     const invalidInputsError = new Error("Invalid inputs");
     invalidInputsError.statusCode = 400;
     throw invalidInputsError;
@@ -98,8 +99,38 @@ const findTokenUser = wrapAsync(async (req, res, next) => {
   }
 
   const userObject = user.toObject();
-  const { _id, __v, password, ...strippedUser } = userObject;
+  const { _id, __v, password, records, ...strippedUser } = userObject;
   res.json(strippedUser);
+});
+
+const findTokenUserRecords = wrapAsync(async (req, res, next) => {
+  const user = await User.findOne({ id: req.user.userid });
+  if (!user) {
+    const noUserError = new Error("No such user");
+    noUserError.statusCode = 404;
+    throw noUserError;
+  }
+
+  const userObject = user.toObject();
+  const { records, ...strippedUser } = userObject;
+  res.json(records);
+});
+
+const addRecord = wrapAsync(async (req, res, next) => {
+  const user = await User.findOne({ id: req.user.userid });
+  if (!user) {
+    const noUserError = new Error("No such user");
+    noUserError.statusCode = 404;
+    throw noUserError;
+  } else {
+    user.records.push({
+      id: uuid(),
+      recordType: req.body.recordType,
+      recordTime: req.body.recordTime,
+    });
+    const updatedUser = await user.save();
+    res.status(201).send(updatedUser.records[updatedUser.records.length - 1]);
+  }
 });
 
 module.exports = {
@@ -110,4 +141,6 @@ module.exports = {
   clearCookie,
   respondLoggedOut,
   findTokenUser,
+  findTokenUserRecords,
+  addRecord,
 };

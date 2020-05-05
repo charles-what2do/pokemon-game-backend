@@ -1,7 +1,24 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
+const Schema = mongoose.Schema;
 
-const userSchema = new mongoose.Schema({
+const recordSchema = new Schema({
+  _id: false,
+  id: {
+    type: String,
+    required: true,
+  },
+  recordType: {
+    type: String,
+    required: true,
+  },
+  recordTime: {
+    type: Number,
+    required: true,
+  },
+});
+
+const userSchema = new Schema({
   id: {
     type: String,
     required: true,
@@ -19,6 +36,7 @@ const userSchema = new mongoose.Schema({
     required: true,
     minlength: 8,
   },
+  records: [recordSchema],
 });
 
 userSchema.pre("save", async function () {
@@ -28,6 +46,6 @@ userSchema.pre("save", async function () {
   }
 });
 
-const User = mongoose.model("Trainer", userSchema);
+const User = mongoose.model("User", userSchema);
 
 module.exports = User;
