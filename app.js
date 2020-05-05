@@ -1,7 +1,15 @@
 const express = require("express");
+const cors = require("cors");
 const cookierParser = require("cookie-parser");
 const app = express();
 require("./utils/db");
+
+var corsOptions = {
+  origin: process.env.FRONTEND_URL || "http://localhost:3000",
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
 
 app.use(express.json());
 app.use(cookierParser(process.env.COOKIE_SECRET_KEY));
