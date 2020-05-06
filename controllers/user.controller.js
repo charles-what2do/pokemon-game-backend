@@ -81,9 +81,11 @@ const setCookie = (req, res, next) => {
   next();
 };
 
-const clearCookie = (req, res, next) => {
-  res.clearCookie("token");
-  next();
+const clearCookie = (req, res) => {
+  // res.clearCookie("token");
+
+  res.cookie("token", "", { expire: new Date(), maxAge: 0 });
+  res.sendStatus(200);
 };
 
 const respondLoggedOut = (req, res) => {
