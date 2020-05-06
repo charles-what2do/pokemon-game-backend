@@ -58,20 +58,19 @@ const setCookie = (req, res, next) => {
   const oneWeek = oneDay * 7;
   const expiryDate = new Date(Date.now() + oneWeek);
 
-  const cookieName = "token";
   const token = req.token;
 
   if (
     process.env.NODE_ENV === "development" ||
     process.env.NODE_ENV === "test"
   ) {
-    res.cookie(cookieName, token, {
+    res.cookie(process.env.COOKIE_NAME, token, {
       expires: expiryDate,
       httpOnly: true,
       signed: true,
     });
   } else {
-    res.cookie(cookieName, token, {
+    res.cookie(process.env.COOKIE_NAME, token, {
       expires: expiryDate,
       httpOnly: true,
       secure: true,
@@ -81,11 +80,9 @@ const setCookie = (req, res, next) => {
   next();
 };
 
-const clearCookie = (req, res) => {
-  // res.clearCookie("token");
-
-  res.cookie("token", "", { expire: new Date(), maxAge: 0 });
-  res.sendStatus(200);
+const clearCookie = (req, res, next) => {
+  res.clearCookie(process.env.COOKIE_NAME);
+  next();
 };
 
 const respondLoggedOut = (req, res) => {

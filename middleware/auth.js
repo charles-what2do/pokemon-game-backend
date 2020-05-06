@@ -3,8 +3,7 @@ const { getSecret } = require("../utils/jwt");
 const wrapAsync = require("../utils/wrapAsync");
 
 const protectRoute = wrapAsync((req, res, next) => {
-  const cookieName = "token";
-  const token = req.signedCookies[cookieName];
+  const token = req.signedCookies[process.env.COOKIE_NAME];
 
   const notAuthorisedError = new Error("You are not authorized");
   notAuthorisedError.statusCode = 401;

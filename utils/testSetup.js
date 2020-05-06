@@ -12,4 +12,5 @@ module.exports = async () => {
   await setupMongoMemoryServer();
   process.env.JWT_SECRET_KEY = "mock secret key";
   process.env.COOKIE_SECRET_KEY = "mock cookie key";
+  process.env.COOKIE_NAME = "token";
 };
