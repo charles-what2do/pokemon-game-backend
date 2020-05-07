@@ -24,7 +24,10 @@ const createOne = wrapAsync(async (req, res, next) => {
   const user = new User(submittedUser);
   user.id = uuid();
   const newUser = await user.save();
-  res.send(newUser);
+
+  const userObject = newUser.toObject();
+  const { _id, __v, password, records, ...strippedUser } = userObject;
+  res.json(strippedUser);
 });
 
 const respondLoggedIn = (req, res) => {
