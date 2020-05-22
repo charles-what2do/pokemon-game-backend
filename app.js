@@ -17,7 +17,7 @@ app.use(cookierParser(process.env.COOKIE_SECRET_KEY));
 const userRouter = require("./routes/user.route");
 app.use("/api/user", userRouter);
 
-app.get("/", (req, res) => {
+app.get("/api/", (req, res) => {
   res.json({
     "0": "GET /",
     "1": "GET /user",
