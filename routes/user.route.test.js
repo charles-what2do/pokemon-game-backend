@@ -18,7 +18,7 @@ describe("User Route", () => {
   beforeEach(async () => {
     await User.create(userData);
     signedInAgent = request.agent(app);
-    await signedInAgent.post("/user/login").send(userData[0]);
+    await signedInAgent.post("/api/user/login").send(userData[0]);
   });
 
   afterEach(async () => {
@@ -34,7 +34,7 @@ describe("User Route", () => {
       };
 
       const { body: actualUser } = await request(app)
-        .post("/user/register")
+        .post("/api/user/register")
         .send(expectedUser)
         .expect(200);
 
@@ -44,7 +44,7 @@ describe("User Route", () => {
 
     it("POST /user/register should return 400 bad erquest error message when request is invalid", async () => {
       const { body: error } = await request(app)
-        .post("/user/register")
+        .post("/api/user/register")
         .send({ badRequest: "" })
         .expect(400);
 
@@ -53,7 +53,7 @@ describe("User Route", () => {
 
     it("POST /user/register with name less than 3 characters will give 400 error", async () => {
       const { body: error } = await request(app)
-        .post("/user/register")
+        .post("/api/user/register")
         .send({ username: "tt", password: "123456789" })
         .expect(400);
 
@@ -62,7 +62,7 @@ describe("User Route", () => {
 
     it("POST /user/register with password less than 8 characters will give 400 error", async () => {
       const { body: error } = await request(app)
-        .post("/user/register")
+        .post("/api/user/register")
         .send({ username: "test", password: "1234567" })
         .expect(400);
 
@@ -78,7 +78,7 @@ describe("User Route", () => {
       };
 
       const { text: message } = await request(app)
-        .post("/user/login")
+        .post("/api/user/login")
         .send(loginUser)
         .expect("set-cookie", /token=.*; Path=\/; Expires=.* HttpOnly/)
         .expect(200);
@@ -93,7 +93,7 @@ describe("User Route", () => {
       };
 
       const { body: error } = await request(app)
-        .post("/user/login")
+        .post("/api/user/login")
         .send(wrongUser)
         .expect(400);
 
@@ -103,7 +103,7 @@ describe("User Route", () => {
 
   describe("/user/logout", () => {
     it("POST /user/logout should logout and clear cookie", async () => {
-      const response = await request(app).post("/user/logout").expect(200);
+      const response = await request(app).post("/api/user/logout").expect(200);
       expect(response.text).toBe("You have been logged out");
       expect(response.headers["set-cookie"][0]).toMatch(/^token=/);
     });
@@ -122,7 +122,7 @@ describe("User Route", () => {
       });
 
       const { body: actualUser } = await signedInAgent
-        .get("/user/")
+        .get("/api/user/")
         .expect(200);
 
       expect(jwt.verify).toBeCalledTimes(1);
@@ -134,7 +134,7 @@ describe("User Route", () => {
         throw new Error("token not valid");
       });
 
-      const { body: error } = await signedInAgent.get("/user").expect(401);
+      const { body: error } = await signedInAgent.get("/api/user").expect(401);
       expect(jwt.verify).toBeCalledTimes(1);
       expect(error.error).toBe("You are not authorized");
     });
@@ -151,7 +151,7 @@ describe("User Route", () => {
       });
 
       const { body: actualRecords } = await signedInAgent
-        .get("/user/records")
+        .get("/api/user/records")
         .expect(200);
 
       expect(jwt.verify).toBeCalledTimes(1);
@@ -164,7 +164,7 @@ describe("User Route", () => {
       });
 
       const { body: error } = await signedInAgent
-        .get("/user/records")
+        .get("/api/user/records")
         .expect(401);
       expect(jwt.verify).toBeCalledTimes(1);
       expect(error.error).toBe("You are not authorized");
@@ -182,7 +182,7 @@ describe("User Route", () => {
       });
 
       const { body: updatedRecord } = await signedInAgent
-        .post("/user/records")
+        .post("/api/user/records")
         .send(record)
         .expect(201);
 
@@ -196,7 +196,7 @@ describe("User Route", () => {
       });
 
       const { body: error } = await signedInAgent
-        .post("/user/records")
+        .post("/api/user/records")
         .expect(401);
       expect(jwt.verify).toBeCalledTimes(1);
       expect(error.error).toBe("You are not authorized");

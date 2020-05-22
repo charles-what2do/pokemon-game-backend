@@ -15,7 +15,7 @@ app.use(express.json());
 app.use(cookierParser(process.env.COOKIE_SECRET_KEY));
 
 const userRouter = require("./routes/user.route");
-app.use("/user", userRouter);
+app.use("/api/user", userRouter);
 
 app.get("/", (req, res) => {
   res.json({
